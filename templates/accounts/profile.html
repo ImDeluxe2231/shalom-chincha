@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil{% endblock %}
+{% block topbar_title %}Mi perfil{% endblock %}
+{% block content %}
+<div class="page-heading compact"><div><span class="eyebrow orange">Cuenta personal</span><h1>Mi perfil</h1><p>Actualiza tus datos personales y credenciales.</p></div></div>
+<div class="profile-grid">
+    <aside class="profile-summary panel-card"><span class="avatar xl">{{ user.first_name|default:user.username|first|upper }}</span><h2>{{ user.display_name }}</h2><span class="role-badge {{ user.role|lower }}">{{ user.get_role_display }}</span><dl><div><dt>Usuario</dt><dd>@{{ user.username }}</dd></div><div><dt>Documento</dt><dd>{{ user.document_type }} {{ user.document_number|default:"No registrado" }}</dd></div><div><dt>Último acceso</dt><dd>{{ user.last_login|date:"d/m/Y H:i" }}</dd></div></dl><a class="btn btn-outline-brand w-100" href="{% url 'password_change' %}">Cambiar contraseña</a></aside>
+    <form method="post" class="panel-card" novalidate>{% csrf_token %}<h2>Información de contacto</h2><p class="text-muted">Los campos de rol y documento solo pueden ser modificados por un administrador.</p><div class="row g-3 mt-1">{% for field in form %}<div class="col-md-6"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>{% endfor %}</div><div class="form-actions"><button class="btn btn-brand" type="submit">Guardar cambios</button></div></form>
+</div>
+{% endblock %}

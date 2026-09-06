@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}Gestión de clientes{% endblock %}
+{% block content %}
+<div class="page-heading compact"><div><span class="eyebrow orange">Módulo 2</span><h1>{{ title }}</h1><p>Los campos marcados con * son obligatorios.</p></div><a class="btn btn-light" href="{% if customer %}{% url 'customer_detail' customer.pk %}{% else %}{% url 'customer_list' %}{% endif %}">← Volver</a></div>
+<form method="post" class="customer-form" novalidate>{% csrf_token %}
+  <section class="panel-card form-section">
+    <div class="form-section-heading"><span>1</span><div><h2>Identificación</h2><p>Selecciona si registrarás una persona o una empresa.</p></div></div>
+    <div class="row g-3">
+      <div class="col-md-4"><label class="form-label" for="{{ form.customer_type.id_for_label }}">{{ form.customer_type.label }} *</label>{{ form.customer_type }}{{ form.customer_type.errors }}</div>
+      <div class="col-md-4"><label class="form-label" for="{{ form.document_type.id_for_label }}">{{ form.document_type.label }} *</label>{{ form.document_type }}{{ form.document_type.errors }}</div>
+      <div class="col-md-4"><label class="form-label" for="{{ form.document_number.id_for_label }}">{{ form.document_number.label }} *</label>{{ form.document_number }}{% for error in form.document_number.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+      <div class="col-md-6" data-person-field><label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }} *</label>{{ form.first_name }}{% for error in form.first_name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+      <div class="col-md-6" data-person-field><label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }} *</label>{{ form.last_name }}{% for error in form.last_name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+      <div class="col-12" data-business-field><label class="form-label" for="{{ form.business_name.id_for_label }}">{{ form.business_name.label }} *</label>{{ form.business_name }}{% for error in form.business_name.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+    </div>
+  </section>
+  <section class="panel-card form-section">
+    <div class="form-section-heading"><span>2</span><div><h2>Contacto</h2><p>Información utilizada para coordinar el envío y la entrega.</p></div></div>
+    <div class="row g-3"><div class="col-md-4"><label class="form-label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }} *</label>{{ form.phone }}{% for error in form.phone.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div><div class="col-md-4"><label class="form-label" for="{{ form.secondary_phone.id_for_label }}">{{ form.secondary_phone.label }}</label>{{ form.secondary_phone }}</div><div class="col-md-4"><label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>{{ form.email }}{{ form.email.errors }}</div></div>
+  </section>
+  <section class="panel-card form-section">
+    <div class="form-section-heading"><span>3</span><div><h2>Dirección</h2><p>Ubicación de referencia para futuras operaciones.</p></div></div>
+    <div class="row g-3"><div class="col-md-4"><label class="form-label" for="{{ form.department.id_for_label }}">{{ form.department.label }} *</label>{{ form.department }}</div><div class="col-md-4"><label class="form-label" for="{{ form.province.id_for_label }}">{{ form.province.label }} *</label>{{ form.province }}</div><div class="col-md-4"><label class="form-label" for="{{ form.district.id_for_label }}">{{ form.district.label }} *</label>{{ form.district }}{{ form.district.errors }}</div><div class="col-12"><label class="form-label" for="{{ form.address.id_for_label }}">{{ form.address.label }} *</label>{{ form.address }}{{ form.address.errors }}</div><div class="col-12"><label class="form-label" for="{{ form.reference.id_for_label }}">{{ form.reference.label }}</label>{{ form.reference }}</div></div>
+  </section>
+  <section class="panel-card form-section">
+    <div class="form-section-heading"><span>4</span><div><h2>Control interno</h2><p>Notas visibles únicamente para el personal autorizado.</p></div></div>
+    {{ form.notes }}<div class="form-check form-switch mt-3">{{ form.is_active }}<label class="form-check-label" for="{{ form.is_active.id_for_label }}">Cliente activo</label></div>
+    {% if form.non_field_errors %}<div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-actions"><a class="btn btn-light" href="{% url 'customer_list' %}">Cancelar</a><button class="btn btn-brand" type="submit">Guardar cliente</button></div>
+  </section>
+</form>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/customers.js' %}"></script>{% endblock %}

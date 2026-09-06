@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block topbar_title %}Usuarios y roles{% endblock %}
+{% block content %}
+<div class="page-heading compact">
+    <div><span class="eyebrow orange">Administración</span><h1>Usuarios y roles</h1><p>Controla quién puede ingresar y qué funciones puede utilizar.</p></div>
+    <a class="btn btn-brand" href="{% url 'user_create' %}">＋ Nuevo usuario</a>
+</div>
+<section class="panel-card">
+    <form method="get" class="filter-bar">
+        <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Buscar por nombre, usuario o DNI">
+        <select class="form-select" name="role">
+            <option value="">Todos los roles</option>
+            {% for value, label in roles %}<option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-dark" type="submit">Buscar</button>
+        {% if query or selected_role %}<a class="btn btn-light" href="{% url 'user_list' %}">Limpiar</a>{% endif %}
+    </form>
+    <div class="table-responsive">
+        <table class="table user-table align-middle">
+            <thead><tr><th>Trabajador</th><th>Documento</th><th>Rol</th><th>Último acceso</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+            <tbody>
+            {% for item in users %}
+            <tr>
+                <td><div class="person-cell"><span class="avatar small">{{ item.first_name|default:item.username|first|upper }}</span><div><strong>{{ item.display_name }}</strong><small>@{{ item.username }} · {{ item.email|default:"Sin correo" }}</small></div></div></td>
+                <td>{{ item.document_type }} {{ item.document_number|default:"—" }}</td>
+                <td><span class="role-badge {{ item.role|lower }}">{{ item.get_role_display }}</span></td>
+                <td>{{ item.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</td>
+                <td><span class="status-badge {% if item.is_active %}active{% endif %}">{% if item.is_active %}Activo{% else %}Inactivo{% endif %}</span></td>
+                <td class="text-end"><a class="btn btn-sm btn-light" href="{% url 'user_update' item.pk %}">Editar</a><form class="d-inline" method="post" action="{% url 'user_toggle_active' item.pk %}">{% csrf_token %}<button class="btn btn-sm {% if item.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" type="submit" {% if item == user %}disabled{% endif %}>{% if item.is_active %}Desactivar{% else %}Activar{% endif %}</button></form></td>
+            </tr>
+            {% empty %}<tr><td colspan="6" class="empty-row">No se encontraron usuarios.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

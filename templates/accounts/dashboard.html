@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}Dashboard operativo{% endblock %}
+{% block content %}
+<div class="page-heading dashboard-heading">
+  <div><span class="eyebrow orange">Módulo 6 · Inteligencia operativa</span><h1>Hola, {{ user.first_name|default:user.username }}</h1><p>Indicadores consolidados para controlar la gestión de envíos.</p></div>
+  <div class="dashboard-heading-actions"><span class="date-chip">Sede Chincha · {% now "d/m/Y" %}</span>{% if can_export_reports %}<a class="btn btn-brand" href="{% url 'report_center' %}">Abrir centro de reportes</a>{% endif %}</div>
+</div>
+
+<form class="dashboard-filters" method="get">
+  <div><label for="{{ filter_form.date_from.id_for_label }}">Desde</label>{{ filter_form.date_from }}</div>
+  <div><label for="{{ filter_form.date_to.id_for_label }}">Hasta</label>{{ filter_form.date_to }}</div>
+  <div><label for="{{ filter_form.agency.id_for_label }}">Agencia</label>{{ filter_form.agency }}</div>
+  <div><label for="{{ filter_form.transport_mode.id_for_label }}">Transporte</label>{{ filter_form.transport_mode }}</div>
+  <button class="btn btn-dark" type="submit">Aplicar filtros</button>
+  <a class="btn btn-light" href="{% url 'dashboard' %}">Limpiar</a>
+  {% if filter_form.errors %}<div class="filter-errors">Revisa las fechas. Selecciona un periodo máximo de 366 días.</div>{% endif %}
+</form>
+
+<section class="executive-metrics">
+  <article><span class="metric-icon navy">▤</span><div><small>Envíos registrados</small><strong>{{ shipment_count }}</strong><p>En el periodo seleccionado</p></div></article>
+  <article><span class="metric-icon green">✓</span><div><small>Entregas completadas</small><strong>{{ delivered_count }}</strong><p>{{ delivery_rate }}% de efectividad</p></div></article>
+  <article><span class="metric-icon blue">⌖</span><div><small>En operación ahora</small><strong>{{ active_shipments }}</strong><p>Según agencia y transporte</p></div></article>
+  <article><span class="metric-icon red">!</span><div><small>Incidencias activas</small><strong>{{ active_incident_count }}</strong><p>{{ incident_rate }}% en el periodo</p></div></article>
+</section>
+
+<section class="performance-strip">
+  <article><span>Tiempo promedio de entrega</span><strong>{{ average_delivery_hours }} h</strong><small>Desde el registro hasta la entrega</small></article>
+  <article><span>Cumplimiento de fecha estimada</span><strong>{{ on_time_rate }}%</strong><small>Entregas dentro del plazo</small></article>
+  <article><span>Pagos pendientes</span><strong>{{ pending_payment_count }}</strong><small>Órdenes del periodo</small></article>
+  {% if show_financial %}<article class="financial"><span>Ingresos confirmados</span><strong>S/ {{ paid_revenue|floatformat:2 }}</strong><small>Envíos pagados del periodo</small></article>{% else %}<article><span>Perfil de acceso</span><strong>Operativo</strong><small>Los montos financieros están protegidos</small></article>{% endif %}
+</section>
+
+<section class="analytics-grid">
+  <article class="analytics-card wide"><div class="analytics-title"><div><span>Tendencia</span><h2>Envíos registrados por día</h2></div><small>{{ period_from|date:"d/m/Y" }} — {{ period_to|date:"d/m/Y" }}</small></div><div class="chart-wrap"><canvas id="dailyShipmentsChart"></canvas></div></article>
+  <article class="analytics-card"><div class="analytics-title"><div><span>Composición</span><h2>Estados actuales</h2></div></div><div class="chart-wrap donut"><canvas id="statusChart"></canvas></div></article>
+  <article class="analytics-card"><div class="analytics-title"><div><span>Rendimiento</span><h2>Entregas por agencia</h2></div></div><div class="chart-wrap"><canvas id="agencyChart"></canvas></div></article>
+  <article class="analytics-card"><div class="analytics-title"><div><span>Control de riesgos</span><h2>Incidencias por gravedad</h2></div></div><div class="chart-wrap"><canvas id="severityChart"></canvas></div></article>
+</section>
+
+<section class="dashboard-activity-grid">
+  <article class="panel-card"><div class="panel-header"><div><h2>Incidencias que requieren atención</h2><p>Casos abiertos o en revisión.</p></div><a href="{% url 'incident_list' %}">Ver incidencias →</a></div><div class="dashboard-activity-list">{% for incident in recent_incidents %}<a href="{% url 'incident_detail' incident.pk %}"><span class="activity-signal {{ incident.severity|lower }}">!</span><div><strong>{{ incident.code }}</strong><p>{{ incident.shipment.order_number }} · {{ incident.agency.code }}</p></div><small>{{ incident.get_severity_display }}</small></a>{% empty %}<div class="activity-empty"><span>✓</span><p>No hay incidencias activas.</p></div>{% endfor %}</div></article>
+  <article class="panel-card"><div class="panel-header"><div><h2>Últimas entregas</h2><p>Cierres registrados en el periodo.</p></div><a href="{% url 'delivery_history' %}">Ver historial →</a></div><div class="dashboard-activity-list">{% for delivery in recent_deliveries %}<a href="{% url 'delivery_detail' delivery.pk %}"><span class="activity-signal delivered">✓</span><div><strong>{{ delivery.shipment.order_number }}</strong><p>{{ delivery.agency.code }} · {{ delivery.receiver_name }}</p></div><small>{{ delivery.delivered_at|date:"d/m H:i" }}</small></a>{% empty %}<div class="activity-empty"><span>—</span><p>No hay entregas en este periodo.</p></div>{% endfor %}</div></article>
+</section>
+
+{{ daily_chart|json_script:"daily-chart-data" }}
+{{ status_chart|json_script:"status-chart-data" }}
+{{ agency_chart|json_script:"agency-chart-data" }}
+{{ severity_chart|json_script:"severity-chart-data" }}
+{% endblock %}
+{% block extra_js %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script><script src="{% static 'js/dashboard.js' %}?v=6.1.1"></script>{% endblock %}

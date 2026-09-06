@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ incident.code }}{% endblock %}
+{% block topbar_title %}Detalle de incidencia{% endblock %}
+{% block content %}
+<div class="page-heading compact">
+  <div><span class="eyebrow orange">Incidencia operativa</span><h1>{{ incident.code }}</h1><p>Orden {{ incident.shipment.order_number }} · Reportada {{ incident.reported_at|date:"d/m/Y H:i" }}</p></div>
+  <div class="shipment-header-actions"><a class="btn btn-light" href="{% url 'incident_list' %}">← Incidencias</a><a class="btn btn-outline-brand" href="{% url 'tracking_detail' incident.shipment.pk %}">Seguimiento</a></div>
+</div>
+<section class="incident-hero {{ incident.severity|lower }}">
+  <div><span>Situación</span><strong class="incident-status {{ incident.status|lower }}">{{ incident.get_status_display }}</strong><small>Actualizado {{ incident.updated_at|date:"d/m/Y H:i" }}</small></div>
+  <div><span>Tipo</span><strong>{{ incident.get_incident_type_display }}</strong><small>{{ incident.agency.name }}</small></div>
+  <div><span>Gravedad</span><strong>{{ incident.get_severity_display }}</strong><small>Estado previo: {{ incident.previous_status.name }}</small></div>
+  <div><span>Responsable</span><strong>{% if incident.assigned_to %}{{ incident.assigned_to.display_name }}{% else %}Sin asignar{% endif %}</strong><small>{% if incident.assigned_to %}{{ incident.assigned_to.get_role_display }}{% else %}Pendiente de revisión{% endif %}</small></div>
+</section>
+<div class="incident-detail-grid">
+  <div class="detail-stack">
+    <section class="panel-card"><h2>Descripción interna</h2><p class="incident-description">{{ incident.description }}</p><div class="incident-author"><span class="avatar small">{{ incident.reported_by.display_name|first|upper }}</span><div><strong>{{ incident.reported_by.display_name }}</strong><small>{{ incident.reported_by.get_role_display }} · {{ incident.reported_at|date:"d/m/Y H:i" }}</small></div></div></section>
+    {% if incident.public_message %}<section class="panel-card"><h2>Mensaje visible para el cliente</h2><p class="public-message-preview">{{ incident.public_message }}</p></section>{% endif %}
+    {% if incident.evidence %}<section class="panel-card evidence-card"><div><h2>Evidencia adjunta</h2><p>Archivo privado, disponible únicamente para personal autenticado.</p></div><a class="btn btn-outline-brand" href="{% url 'incident_evidence' incident.pk %}" target="_blank">Abrir evidencia ↗</a></section>{% endif %}
+    <section class="panel-card"><div class="panel-header"><div><h2>Historial de atención</h2><p>Acciones inalterables de la incidencia.</p></div></div><div class="incident-action-timeline">{% for action in incident.actions.all %}<article><span>•</span><div><strong>{{ action.get_action_display }}</strong><p>{{ action.notes }}</p><small>{{ action.performed_by.display_name }} · {{ action.created_at|date:"d/m/Y H:i" }}</small></div></article>{% endfor %}</div></section>
+    {% if incident.status == 'RESOLVED' %}<section class="panel-card resolution-card"><span>✓ Resuelta</span><h2>Solución aplicada</h2><p>{{ incident.resolution }}</p><small>{{ incident.resolved_by.display_name }} · {{ incident.resolved_at|date:"d/m/Y H:i" }}</small></section>{% endif %}
+  </div>
+  <aside class="detail-stack">
+    <section class="panel-card"><h2>Datos relacionados</h2><dl class="summary-list"><div><dt>Envío</dt><dd>{{ incident.shipment.order_number }}</dd></div><div><dt>Agencia</dt><dd>{{ incident.agency.code }}</dd></div><div><dt>Estado interrumpido</dt><dd>{{ incident.previous_status.name }}</dd></div><div><dt>Destinatario</dt><dd>{{ incident.shipment.recipient.display_name }}</dd></div></dl></section>
+    {% if user.is_admin_role and incident.status != 'RESOLVED' %}
+    <section class="panel-card incident-action-card"><h2>Asignar para revisión</h2><form method="post" action="{% url 'incident_review' incident.pk %}">{% csrf_token %}<div class="mb-3"><label class="form-label">Responsable</label>{{ review_form.assigned_to }}</div><div class="mb-3"><label class="form-label">Mensaje para cliente</label>{{ review_form.public_message }}</div><button class="btn btn-outline-brand w-100" type="submit">Guardar y poner en revisión</button></form></section>
+    <section class="panel-card resolve-action-card"><h2>Resolver incidencia</h2><form method="post" action="{% url 'incident_resolve' incident.pk %}">{% csrf_token %}<div class="mb-3"><label class="form-label">Solución aplicada *</label>{{ resolution_form.resolution }}</div><div class="mb-3"><label class="form-label">Mensaje final</label>{{ resolution_form.public_message }}</div><div class="form-check mb-3">{{ resolution_form.resume_confirmation }}<label class="form-check-label" for="{{ resolution_form.resume_confirmation.id_for_label }}">{{ resolution_form.resume_confirmation.label }}</label></div><button class="btn btn-brand w-100" type="submit">Resolver y reanudar envío</button></form></section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Indicadores de tesis{% endblock %}
+{% block topbar_title %}Indicadores de la investigación{% endblock %}
+{% block content %}
+<div class="research-hero">
+  <div>
+    <span class="eyebrow orange">Módulo 7 · Validación de tesis</span>
+    <h1>Indicadores pretest y postest</h1>
+    <p>Registra y compara únicamente los tres indicadores definidos en la operacionalización de la tesis.</p>
+  </div>
+  <a class="btn btn-brand" href="{% url 'research_export' %}">Exportar los 3 indicadores</a>
+</div>
+
+<section class="research-note">
+  <strong>Importante:</strong>
+  <span>Utiliza observaciones reales. Los datos demostrativos del sistema no deben presentarse como resultados de la investigación.</span>
+</section>
+
+<section class="indicator-grid">
+  <article class="indicator-card">
+    <header><span>Indicador 01</span><h2>Trazabilidad de los envíos</h2><p>Envíos rastreados correctamente respecto al total registrado.</p></header>
+    <div class="research-compare"><div><small>Pretest</small><strong>{{ summary.traceability.pre.value }}%</strong><em>{{ summary.traceability.pre.rows }} fichas</em></div><span>→</span><div><small>Postest</small><strong>{{ summary.traceability.post.value }}%</strong><em>{{ summary.traceability.post.rows }} fichas</em></div></div>
+    <div class="indicator-result"><small>Variación obtenida</small><strong>{% if summary.traceability.improvement != None %}{{ summary.traceability.improvement }}%{% else %}Pendiente{% endif %}</strong></div>
+    <a href="{% url 'research_traceability_create' %}" class="btn btn-brand">Registrar ficha de trazabilidad</a>
+  </article>
+
+  <article class="indicator-card">
+    <header><span>Indicador 02</span><h2>Tiempos de respuesta</h2><p>Tiempo empleado para consultar o actualizar el estado de un envío.</p></header>
+    <div class="research-compare"><div><small>Pretest</small><strong>{{ summary.response.pre.value }} min</strong><em>{{ summary.response.pre.rows }} mediciones</em></div><span>→</span><div><small>Postest</small><strong>{{ summary.response.post.value }} min</strong><em>{{ summary.response.post.rows }} mediciones</em></div></div>
+    <div class="indicator-breakdown"><span>Consulta: <b>{{ summary.response.post.query }} min</b></span><span>Actualización: <b>{{ summary.response.post.update }} min</b></span></div>
+    <div class="indicator-result"><small>Reducción obtenida</small><strong>{% if summary.response.improvement != None %}{{ summary.response.improvement }}%{% else %}Pendiente{% endif %}</strong></div>
+    <a href="{% url 'research_response_time_create' %}" class="btn btn-brand">Registrar tiempo observado</a>
+  </article>
+
+  <article class="indicator-card">
+    <header><span>Indicador 03</span><h2>Eficiencia administrativa y operativa</h2><p>Nivel de satisfacción obtenido mediante el cuestionario Likert de diez ítems.</p></header>
+    <div class="research-compare"><div><small>Pretest</small><strong>{{ summary.efficiency.pre.value }}/5</strong><em>{{ summary.efficiency.pre.rows }}/15 encuestas</em></div><span>→</span><div><small>Postest</small><strong>{{ summary.efficiency.post.value }}/5</strong><em>{{ summary.efficiency.post.rows }}/15 encuestas</em></div></div>
+    <div class="indicator-breakdown"><span>Administrativa: <b>{{ summary.efficiency.post.administrative }}/5</b></span><span>Operativa: <b>{{ summary.efficiency.post.operational }}/5</b></span></div>
+    <div class="indicator-result"><small>Variación obtenida</small><strong>{% if summary.efficiency.improvement != None %}{{ summary.efficiency.improvement }}%{% else %}Pendiente{% endif %}</strong></div>
+    <a href="{% url 'research_survey_create' %}" class="btn btn-brand">Registrar cuestionario Likert</a>
+  </article>
+</section>
+
+<section class="indicator-records">
+  <article class="research-panel">
+    <div class="research-panel-title"><div><span>Indicador 1</span><h2>Últimas fichas de trazabilidad</h2></div><a href="{% url 'research_traceability_create' %}">Agregar</a></div>
+    <div class="mini-records">{% for item in traceability_records %}<div><span class="phase {{ item.phase|lower }}">{{ item.get_phase_display }}</span><div><strong>{{ item.percentage }}%</strong><small>{{ item.correctly_tracked }} de {{ item.total_registered }} envíos</small></div><time>{{ item.observed_on|date:"d/m/Y" }}</time></div>{% empty %}<p class="empty-state">Todavía no hay fichas registradas.</p>{% endfor %}</div>
+  </article>
+  <article class="research-panel">
+    <div class="research-panel-title"><div><span>Indicador 2</span><h2>Últimos tiempos observados</h2></div><a href="{% url 'research_response_time_create' %}">Agregar</a></div>
+    <div class="mini-records">{% for item in response_records %}<div><span class="phase {{ item.phase|lower }}">{{ item.get_phase_display }}</span><div><strong>{{ item.duration_minutes }} min</strong><small>{{ item.get_operation_display }}</small></div><time>{{ item.started_at|date:"d/m H:i" }}</time></div>{% empty %}<p class="empty-state">Todavía no hay tiempos registrados.</p>{% endfor %}</div>
+  </article>
+  <article class="research-panel">
+    <div class="research-panel-title"><div><span>Indicador 3</span><h2>Últimos cuestionarios</h2></div><a href="{% url 'research_survey_create' %}">Agregar</a></div>
+    <div class="mini-records">{% for item in survey_records %}<div><span class="phase {{ item.phase|lower }}">{{ item.get_phase_display }}</span><div><strong>{{ item.average_score }}/5</strong><small>{{ item.participant.code }} · {{ item.participant.get_area_display }}</small></div><time>{{ item.observed_on|date:"d/m/Y" }}</time></div>{% empty %}<p class="empty-state">Todavía no hay cuestionarios registrados.</p>{% endfor %}</div>
+  </article>
+</section>
+{% endblock %}
+{% block extra_js %}<link rel="stylesheet" href="{% static 'css/research.css' %}?v=7.1.0">{% endblock %}

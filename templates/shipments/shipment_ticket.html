@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Comprobante {{ shipment.order_number }}{% endblock %}
+{% block topbar_title %}Comprobante de envío{% endblock %}
+{% block content %}
+<div class="ticket-toolbar"><a class="btn btn-light" href="{% url 'shipment_detail' shipment.pk %}">← Volver al envío</a><button class="btn btn-brand" type="button" onclick="window.print()">Imprimir comprobante</button></div>
+<article class="shipping-ticket">
+  <header><div class="ticket-brand"><span class="brand-mark">SC</span><div><strong>Shalom Chincha</strong><small>Gestión y seguimiento de envíos</small></div></div><div class="ticket-order"><span>Orden</span><strong>{{ shipment.order_number }}</strong><small>{{ shipment.created_at|date:"d/m/Y H:i" }}</small></div></header>
+  <section class="ticket-code-band"><div><span>Código de seguimiento</span><strong>{{ shipment.tracking_code }}</strong><small>Necesario para consultar el estado del envío</small></div><img src="data:image/png;base64,{{ qr_data }}" alt="Código QR del envío {{ shipment.order_number }}"></section>
+  <section class="ticket-route"><article><span>Origen</span><strong>{{ shipment.origin.name }}</strong><small>{{ shipment.origin.location }}</small></article><i>→</i><article><span>Destino</span><strong>{{ shipment.destination.name }}</strong><small>{{ shipment.destination.location }}</small></article></section>
+  <section class="ticket-people"><article><span>Remitente</span><strong>{{ shipment.sender.display_name }}</strong><p>{{ shipment.sender.document_type }} {{ shipment.sender.document_number }}</p><p>Cel. {{ shipment.sender.phone }}</p></article><article><span>Destinatario</span><strong>{{ shipment.recipient.display_name }}</strong><p>{{ shipment.recipient.document_type }} {{ shipment.recipient.document_number }}</p><p>Cel. {{ shipment.recipient.phone }}</p></article></section>
+  <section class="ticket-packages"><h2>Detalle de paquetes</h2><table><thead><tr><th>#</th><th>Tipo y contenido</th><th>Bultos</th><th>Peso</th><th>Medidas</th><th>Valor declarado</th></tr></thead><tbody>{% for package in shipment.packages.all %}<tr><td>{{ forloop.counter }}</td><td><strong>{{ package.get_package_type_display }}</strong><br>{{ package.description }}{% if package.is_fragile %} · FRÁGIL{% endif %}</td><td>{{ package.quantity }}</td><td>{{ package.weight }} kg</td><td>{{ package.length }} × {{ package.width }} × {{ package.height }} cm</td><td>S/ {{ package.declared_value|floatformat:2 }}</td></tr>{% endfor %}</tbody></table></section>
+  <section class="ticket-summary"><div><span>Modalidad</span><strong>{{ shipment.get_transport_mode_display }}</strong></div><div><span>Servicio</span><strong>{{ shipment.get_service_type_display }}</strong></div><div><span>Pago</span><strong>{{ shipment.get_payment_timing_display }}</strong></div><div class="ticket-total"><span>Total</span><strong>S/ {{ shipment.total_cost|floatformat:2 }}</strong></div></section>
+  {% if shipment.notes %}<section class="ticket-note"><strong>Observaciones:</strong> {{ shipment.notes }}</section>{% endif %}
+  <footer><div><span>Registrado por</span><strong>{{ shipment.created_by.display_name }}</strong></div><p>Conserve este comprobante y no comparta públicamente el código de seguimiento.</p></footer>
+</article>
+{% endblock %}

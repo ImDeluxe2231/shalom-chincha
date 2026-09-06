@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}Validación de Tesis II{% endblock %}
+{% block content %}
+<div class="research-form-shell">
+  <div class="research-form-heading">
+    <div><span class="eyebrow orange">Módulo 7 · Instrumento</span><h1>{{ title }}</h1><p>{{ subtitle }}</p></div>
+    <a class="btn btn-light" href="{% url 'validation_dashboard' %}">← Volver a validación</a>
+  </div>
+  <form method="post" class="research-form-card" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="research-form-grid">
+      {% for field in form %}
+      <div class="research-field {% if field.name == 'notes' %}full{% endif %}">
+        {% if field.field.widget.input_type == 'checkbox' %}<div class="form-check">{{ field }} <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label></div>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="research-form-footer"><span>El registro conservará el usuario responsable y la fecha de creación.</span><button class="btn btn-brand" type="submit">Guardar registro</button></div>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}<link rel="stylesheet" href="{% static 'css/research.css' %}?v=7.1.0">{% endblock %}

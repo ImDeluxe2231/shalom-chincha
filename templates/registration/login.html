@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block public_content %}
+<main class="login-page">
+    <section class="login-panel login-intro">
+        <div class="login-brand"><span class="brand-mark large">SC</span> Shalom Chincha</div>
+        <div class="intro-copy">
+            <span class="eyebrow">Sistema interno</span>
+            <h1>Control de envíos con información clara y segura.</h1>
+            <p>Plataforma académica para organizar las operaciones de la sede Chincha y mejorar la trazabilidad de cada paquete.</p>
+            <div class="intro-features">
+                <span><b>01</b> Acceso por roles</span>
+                <span><b>02</b> Procesos centralizados</span>
+                <span><b>03</b> Seguimiento verificable</span>
+            </div>
+        </div>
+        <small>Proyecto de Tesis II · 2027</small>
+    </section>
+    <section class="login-panel login-form-panel">
+        <form method="post" class="login-card" novalidate>
+            {% csrf_token %}
+            <span class="eyebrow orange">Acceso al sistema</span>
+            <h2>Bienvenido</h2>
+            <p>Ingresa las credenciales asignadas por el administrador.</p>
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">Usuario o contraseña incorrectos.</div>
+            {% endif %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+            <button type="submit" class="btn btn-brand w-100">Ingresar al sistema</button>
+            <div class="security-note">🔒 Conexión protegida y acceso restringido al personal.</div>
+        </form>
+    </section>
+</main>
+{% endblock %}

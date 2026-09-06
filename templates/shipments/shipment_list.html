@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Envíos{% endblock %}
+{% block topbar_title %}Envíos{% endblock %}
+{% block content %}
+<div class="page-heading compact">
+  <div><span class="eyebrow orange">Módulo 3</span><h1>Envíos</h1><p>Registro centralizado de órdenes, paquetes y costos del servicio.</p></div>
+  {% if can_write %}<a class="btn btn-brand" href="{% url 'shipment_create' %}">＋ Registrar envío</a>{% endif %}
+</div>
+<div class="shipment-stats">
+  <article><span>Total de envíos</span><strong>{{ total_shipments }}</strong><small>Órdenes registradas</small></article>
+  <article><span>Registrados hoy</span><strong>{{ today_shipments }}</strong><small>{% now "d/m/Y" %}</small></article>
+  <article><span>Pagos pendientes</span><strong>{{ pending_payment }}</strong><small>Por regularizar</small></article>
+</div>
+<section class="panel-card">
+  <form method="get" class="shipment-filter-bar">
+    <div class="shipment-search"><input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Orden, código, cliente o documento"></div>
+    <select class="form-select" name="status"><option value="">Todos los estados</option>{% for item in statuses %}<option value="{{ item.code }}" {% if selected_status == item.code %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select>
+    <select class="form-select" name="mode"><option value="">Todas las modalidades</option>{% for value, label in transport_modes %}<option value="{{ value }}" {% if selected_mode == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <input class="form-control" type="date" name="from" value="{{ date_from }}" title="Desde">
+    <input class="form-control" type="date" name="to" value="{{ date_to }}" title="Hasta">
+    <button class="btn btn-dark" type="submit">Buscar</button>
+    {% if query or selected_status or selected_mode or date_from or date_to %}<a class="btn btn-light" href="{% url 'shipment_list' %}">Limpiar</a>{% endif %}
+  </form>
+  <div class="table-responsive">
+    <table class="table shipment-table align-middle">
+      <thead><tr><th>Orden</th><th>Remitente / destinatario</th><th>Ruta</th><th>Paquetes</th><th>Total</th><th>Estado</th><th class="text-end">Acción</th></tr></thead>
+      <tbody>
+      {% for shipment in shipments %}
+      <tr>
+        <td><a class="order-link" href="{% url 'shipment_detail' shipment.pk %}">{{ shipment.order_number }}</a><small>Código {{ shipment.tracking_code }} · {{ shipment.created_at|date:"d/m/Y H:i" }}</small></td>
+        <td><strong>{{ shipment.sender.display_name }}</strong><small>Para: {{ shipment.recipient.display_name }}</small></td>
+        <td><strong>{{ shipment.origin.code }} → {{ shipment.destination.code }}</strong><small>{{ shipment.get_transport_mode_display }}</small></td>
+        <td><strong>{{ shipment.total_packages }} bulto{{ shipment.total_packages|pluralize }}</strong><small>{{ shipment.total_actual_weight }} kg reales</small></td>
+        <td><strong>S/ {{ shipment.total_cost|floatformat:2 }}</strong><small>{{ shipment.get_payment_status_display }}</small></td>
+        <td><span class="shipment-status" style="--status-color:{{ shipment.current_status.color }}">{{ shipment.current_status.name }}</span></td>
+        <td class="text-end"><a class="btn btn-sm btn-light" href="{% url 'shipment_detail' shipment.pk %}">Ver detalle</a></td>
+      </tr>
+      {% empty %}<tr><td colspan="7" class="empty-row"><strong>No se encontraron envíos.</strong><br>Registra una orden o modifica los filtros.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination-bar"><span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="btn btn-sm btn-light" href="?q={{ query|urlencode }}&status={{ selected_status }}&mode={{ selected_mode }}&from={{ date_from }}&to={{ date_to }}&page={{ page_obj.previous_page_number }}">← Anterior</a>{% endif %}{% if page_obj.has_next %}<a class="btn btn-sm btn-light" href="?q={{ query|urlencode }}&status={{ selected_status }}&mode={{ selected_mode }}&from={{ date_from }}&to={{ date_to }}&page={{ page_obj.next_page_number }}">Siguiente →</a>{% endif %}</div></nav>{% endif %}
+</section>
+{% endblock %}

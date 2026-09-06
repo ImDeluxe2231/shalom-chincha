@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Acceso restringido{% endblock %}
+{% block content %}<section class="success-state panel-card"><div class="error-icon">!</div><h1>Acceso restringido</h1><p>Tu rol no tiene permiso para ingresar a esta sección.</p><a class="btn btn-brand" href="{% url 'dashboard' %}">Volver al panel</a></section>{% endblock %}

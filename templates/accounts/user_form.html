@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block topbar_title %}Usuarios y roles{% endblock %}
+{% block content %}
+<div class="page-heading compact"><div><span class="eyebrow orange">Administración</span><h1>{{ title }}</h1><p>Completa los datos de acceso del trabajador.</p></div><a class="btn btn-light" href="{% url 'user_list' %}">← Volver</a></div>
+<form method="post" class="form-layout" novalidate>
+    {% csrf_token %}
+    <section class="panel-card">
+        <div class="form-section-heading"><span>1</span><div><h2>Datos personales</h2><p>Información que permitirá identificar al trabajador.</p></div></div>
+        <div class="row g-3">
+        {% for field in form %}
+            {% if field.name == 'password1' %}</div><hr><div class="form-section-heading"><span>3</span><div><h2>Contraseña inicial</h2><p>El trabajador podrá cambiarla desde su perfil.</p></div></div><div class="row g-3">{% endif %}
+            {% if field.name == 'role' %}</div><hr><div class="form-section-heading"><span>2</span><div><h2>Acceso y permisos</h2><p>Define las funciones que podrá utilizar.</p></div></div><div class="row g-3">{% endif %}
+            <div class="{% if field.name == 'is_active' or field.name == 'must_change_password' %}col-12{% else %}col-md-6{% endif %}">
+                {% if field.field.widget.input_type == 'checkbox' %}<div class="form-check form-switch">{{ field }}<label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label></div>
+                {% else %}<label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% endif %}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text|safe }}</div>{% endif %}
+                {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+        </div>
+        {% if form.non_field_errors %}<div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="form-actions"><a class="btn btn-light" href="{% url 'user_list' %}">Cancelar</a><button class="btn btn-brand" type="submit">Guardar usuario</button></div>
+    </section>
+</form>
+{% endblock %}

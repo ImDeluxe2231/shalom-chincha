@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Clientes{% endblock %}
+{% block topbar_title %}Clientes{% endblock %}
+{% block content %}
+<div class="page-heading compact">
+  <div><span class="eyebrow orange">Módulo 2</span><h1>Clientes</h1><p>Fichas que podrán utilizarse como remitentes o destinatarios.</p></div>
+  {% if can_edit %}<a class="btn btn-brand" href="{% url 'customer_create' %}">＋ Registrar cliente</a>{% endif %}
+</div>
+<div class="customer-stats">
+  <article><span>Total registrado</span><strong>{{ total_customers }}</strong></article>
+  <article><span>Clientes activos</span><strong>{{ active_customers }}</strong></article>
+  <article><span>Permiso actual</span><strong class="permission-label">{% if can_edit %}Gestión completa{% else %}Solo consulta{% endif %}</strong></article>
+</div>
+<section class="panel-card">
+  <form method="get" class="customer-filter-bar">
+    <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Buscar nombre, documento o celular">
+    <select class="form-select" name="type"><option value="">Todos los tipos</option>{% for value, label in customer_types %}<option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="form-select" name="status"><option value="all" {% if selected_status == 'all' %}selected{% endif %}>Todos los estados</option><option value="active" {% if selected_status == 'active' %}selected{% endif %}>Activos</option><option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactivos</option></select>
+    <button class="btn btn-dark" type="submit">Buscar</button>
+    {% if query or selected_type or selected_status != 'active' %}<a class="btn btn-light" href="{% url 'customer_list' %}">Limpiar</a>{% endif %}
+  </form>
+  <div class="table-responsive">
+    <table class="table customer-table align-middle">
+      <thead><tr><th>Cliente</th><th>Documento</th><th>Contacto</th><th>Ubicación</th><th>Estado</th><th class="text-end">Acción</th></tr></thead>
+      <tbody>
+      {% for customer in customers %}
+      <tr>
+        <td><div class="person-cell"><span class="customer-type-icon">{% if customer.customer_type == 'BUSINESS' %}E{% else %}P{% endif %}</span><div><strong>{{ customer.display_name }}</strong><small>{{ customer.get_customer_type_display }}</small></div></div></td>
+        <td><strong>{{ customer.document_type }}</strong> {{ customer.document_number }}</td>
+        <td>{{ customer.phone }}{% if customer.email %}<small class="d-block text-muted">{{ customer.email }}</small>{% endif %}</td>
+        <td>{{ customer.district }}<small class="d-block text-muted">{{ customer.province }}</small></td>
+        <td><span class="status-badge {% if customer.is_active %}active{% endif %}">{% if customer.is_active %}Activo{% else %}Inactivo{% endif %}</span></td>
+        <td class="text-end"><a class="btn btn-sm btn-light" href="{% url 'customer_detail' customer.pk %}">Ver ficha</a>{% if can_edit %}<a class="btn btn-sm btn-outline-brand" href="{% url 'customer_update' customer.pk %}">Editar</a>{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="empty-row"><strong>No hay clientes para mostrar.</strong><br>Cambia los filtros o registra una nueva ficha.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="pagination-bar" aria-label="Paginación de clientes">
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    <div>
+      {% if page_obj.has_previous %}<a class="btn btn-sm btn-light" href="?q={{ query|urlencode }}&type={{ selected_type }}&status={{ selected_status }}&page={{ page_obj.previous_page_number }}">← Anterior</a>{% endif %}
+      {% if page_obj.has_next %}<a class="btn btn-sm btn-light" href="?q={{ query|urlencode }}&type={{ selected_type }}&status={{ selected_status }}&page={{ page_obj.next_page_number }}">Siguiente →</a>{% endif %}
+    </div>
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}

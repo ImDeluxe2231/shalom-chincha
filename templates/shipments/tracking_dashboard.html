@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Seguimiento operativo{% endblock %}
+{% block topbar_title %}Seguimiento operativo{% endblock %}
+{% block content %}
+<div class="page-heading compact">
+  <div><span class="eyebrow orange">Módulo 4</span><h1>Seguimiento operativo</h1><p>Control de recepción, almacén, despacho y tránsito de cada envío.</p></div>
+  <a class="btn btn-outline-brand" href="{% url 'public_tracking' %}" target="_blank">Abrir consulta pública ↗</a>
+</div>
+<div class="tracking-stat-grid">
+  <article><span>En origen</span><strong>{{ warehouse_count }}</strong><small>Recepción y almacén</small></article>
+  <article><span>En transporte</span><strong>{{ transit_count }}</strong><small>Despachados y en tránsito</small></article>
+  <article><span>En destino</span><strong>{{ destination_count }}</strong><small>Recibidos o listos para recojo</small></article>
+</div>
+<div class="tracking-dashboard-grid">
+  <section class="panel-card">
+    <form method="get" class="tracking-filter-bar">
+      <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Orden, código, cliente o documento">
+      <select class="form-select" name="status"><option value="">Todos los estados</option>{% for item in statuses %}<option value="{{ item.code }}" {% if selected_status == item.code %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select>
+      <select class="form-select" name="agency"><option value="">Todas las agencias</option>{% for item in agencies %}<option value="{{ item.pk }}" {% if selected_agency == item.pk|stringformat:"s" %}selected{% endif %}>{{ item.code }} · {{ item.name }}</option>{% endfor %}</select>
+      <button class="btn btn-dark" type="submit">Buscar</button>
+      {% if query or selected_status or selected_agency %}<a class="btn btn-light" href="{% url 'tracking_dashboard' %}">Limpiar</a>{% endif %}
+    </form>
+    <div class="table-responsive">
+      <table class="table tracking-table align-middle">
+        <thead><tr><th>Orden</th><th>Ruta</th><th>Ubicación actual</th><th>Estado</th><th>Último movimiento</th><th class="text-end">Acción</th></tr></thead>
+        <tbody>{% for shipment in shipments %}<tr>
+          <td><a class="order-link" href="{% url 'tracking_detail' shipment.pk %}">{{ shipment.order_number }}</a><small>Código {{ shipment.tracking_code }}</small></td>
+          <td><strong>{{ shipment.origin.code }} → {{ shipment.destination.code }}</strong><small>{{ shipment.get_transport_mode_display }}</small></td>
+          <td><strong>{% if shipment.current_agency %}{{ shipment.current_agency.name }}{% else %}Por confirmar{% endif %}</strong><small>{% if shipment.current_location %}{{ shipment.current_location.full_label }}{% else %}Sin posición en almacén{% endif %}</small></td>
+          <td><span class="shipment-status" style="--status-color:{{ shipment.current_status.color }}">{{ shipment.current_status_label }}</span></td>
+          <td>{{ shipment.status_changed_at|date:"d/m/Y H:i" }}<small>Por {{ shipment.updated_by.display_name }}</small></td>
+          <td class="text-end"><a class="btn btn-sm {% if can_operate and shipment.next_status_code %}btn-brand{% else %}btn-light{% endif %}" href="{% url 'tracking_detail' shipment.pk %}">{% if can_operate and shipment.next_status_code %}Procesar{% else %}Consultar{% endif %}</a></td>
+        </tr>{% empty %}<tr><td colspan="6" class="empty-row"><strong>No se encontraron envíos.</strong><br>Modifica los filtros de búsqueda.</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination-bar"><span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="btn btn-sm btn-light" href="?q={{ query|urlencode }}&status={{ selected_status }}&agency={{ selected_agency }}&page={{ page_obj.previous_page_number }}">← Anterior</a>{% endif %}{% if page_obj.has_next %}<a class="btn btn-sm btn-light" href="?q={{ query|urlencode }}&status={{ selected_status }}&agency={{ selected_agency }}&page={{ page_obj.next_page_number }}">Siguiente →</a>{% endif %}</div></nav>{% endif %}
+  </section>
+  <aside class="panel-card recent-movements">
+    <div class="panel-header"><div><h2>Actividad reciente</h2><p>Últimos movimientos registrados</p></div></div>
+    <div class="recent-event-list">{% for event in recent_events %}<a href="{% url 'tracking_detail' event.shipment.pk %}"><span class="timeline-dot" style="--status-color:{{ event.status.color }}"></span><div><strong>{{ event.status.name }}</strong><p>{{ event.shipment.order_number }} · {{ event.agency.code }}</p><small>{{ event.created_at|date:"d/m/Y H:i" }} · {{ event.created_by.display_name }}</small></div></a>{% empty %}<p class="text-muted">Aún no existen movimientos.</p>{% endfor %}</div>
+  </aside>
+</div>
+{% endblock %}
