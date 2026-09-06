@@ -1,7 +1,7 @@
 from io import StringIO
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import User
@@ -12,6 +12,7 @@ from shipments.models import Shipment, TrackingEvent
 from .management.commands.cargar_datos_demo import DEMO_MARKER
 
 
+@override_settings(DEBUG=True, PRODUCTION=False)
 class MassiveDemoDataCommandTests(TestCase):
     def test_command_creates_realistic_data_and_is_idempotent(self):
         output = StringIO()
